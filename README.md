@@ -72,11 +72,10 @@ fi
 
 ### `~/.tmux.conf.local` — tmux prefix override
 
-The default prefix is `Ctrl+A` (for servers). Override it per machine:
+The default prefix is `Ctrl+B` (tmux default). Override it per machine:
 
 ```bash
 # Use Ctrl+Space as prefix on workstations
-unbind C-a
 set -g prefix C-space
 bind C-space send-prefix
 ```
