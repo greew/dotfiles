@@ -10,8 +10,9 @@ My personal terminal setup for new machines. Installs zsh, [Oh My Zsh](https://o
 |------|-------------|
 | `.zshrc` | Zsh config with Oh My Zsh, eza aliases, git shortcuts, NVM |
 | `.vimrc` | Minimal vim config (line numbers, desert theme, 4-space tabs) |
-| `.gitconfig` | Git defaults (main branch, global gitignore). Identity is configured per-machine |
+| `.gitconfig` | Git defaults (main branch, global gitignore, SSH commit signing) |
 | `.gitignore` | Global gitignore (`.idea/`) |
+| `tmux/` | Tmux config with Catppuccin theme, TPM plugins, and custom modules |
 | `install.sh` | Interactive installer that sets everything up |
 
 ## Quick start
@@ -33,12 +34,13 @@ cd ~/.dotfiles && ./install.sh
 
 ## What the installer does
 
-1. **Installs dependencies** — `zsh`, `eza`, `curl`, `git`, `vim` (via `apt`)
+1. **Installs dependencies** — `zsh`, `eza`, `curl`, `git`, `vim`, `tmux` (via `apt`)
 2. **Installs Oh My Zsh** and the [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) plugin
 3. **Downloads eza zsh completions** from the [eza repo](https://github.com/eza-community/eza)
-4. **Symlinks dotfiles** to `~/.dotfiles` — with diff view, backup, and skip options for existing files
-5. **Configures git identity** — prompts for name and email, stored in `~/.gitconfig.local`
-6. **Sets zsh as default shell**
+4. **Sets up tmux** — symlinks config, custom modules, and installs [TPM](https://github.com/tmux-plugins/tpm) (auto-bootstraps on first run)
+5. **Symlinks dotfiles** to `~/.dotfiles` — with diff view, backup, and skip options for existing files
+6. **Configures git identity and SSH commit signing**
+7. **Sets zsh as default shell**
 
 The installer is interactive and idempotent — safe to re-run at any time.
 
@@ -66,6 +68,17 @@ alias proj="cd ~/projects/my-thing"
 if [ -z "$TMUX" ]; then
   tmux new-session -A -s main
 fi
+```
+
+### `~/.tmux.conf.local` — tmux prefix override
+
+The default prefix is `Ctrl+A` (for servers). Override it per machine:
+
+```bash
+# Use Ctrl+Space as prefix on workstations
+unbind C-a
+set -g prefix C-space
+bind C-space send-prefix
 ```
 
 ### `~/.gitconfig.local` — git identity and signing

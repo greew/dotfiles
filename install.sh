@@ -43,9 +43,9 @@ echo -e "${BOLD}Dotfiles Installer${NC}"
 echo -e "──────────────────"
 echo ""
 echo "This script will:"
-echo "  1. Install dependencies (zsh, eza, curl, git, vim)"
+echo "  1. Install dependencies (zsh, eza, curl, git, vim, tmux)"
 echo "  2. Install Oh My Zsh and plugins (zsh-autosuggestions)"
-echo "  3. Symlink dotfiles (.zshrc, .vimrc, .gitconfig, .gitignore) to ~/dotfiles"
+echo "  3. Symlink dotfiles (.zshrc, .vimrc, .gitconfig, .gitignore, tmux.conf)"
 echo "  4. Configure git identity and commit signing"
 echo "  5. Set zsh as default shell (if not already)"
 echo ""
@@ -63,7 +63,7 @@ echo ""
 # Dependencies
 # --------------------------------------------------------------------------
 
-PACKAGES=(zsh eza curl git vim)
+PACKAGES=(zsh eza curl git vim tmux)
 MISSING=()
 
 info "Checking dependencies..."
@@ -154,6 +154,65 @@ else
     sudo mkdir -p /usr/local/share/zsh/site-functions
     sudo curl -fsSL -o "$EZA_COMP" "$EZA_COMP_URL"
     success "Eza completions installed"
+fi
+
+echo ""
+
+# --------------------------------------------------------------------------
+# Tmux config
+# --------------------------------------------------------------------------
+
+TMUX_CONF_DIR="$HOME/.config/tmux"
+
+if [ -d "$DOTFILES_DIR/tmux" ]; then
+    info "Setting up tmux config..."
+
+    mkdir -p "$TMUX_CONF_DIR"
+
+    # Symlink tmux.conf
+    if [ -L "$TMUX_CONF_DIR/tmux.conf" ] && [ "$(readlink -f "$TMUX_CONF_DIR/tmux.conf")" = "$(readlink -f "$DOTFILES_DIR/tmux/tmux.conf")" ]; then
+        success "tmux.conf is already linked"
+    else
+        if [ -e "$TMUX_CONF_DIR/tmux.conf" ] && [ ! -L "$TMUX_CONF_DIR/tmux.conf" ]; then
+            mv "$TMUX_CONF_DIR/tmux.conf" "$TMUX_CONF_DIR/tmux.conf.bak"
+            info "Backed up existing tmux.conf"
+        fi
+        ln -sf "$DOTFILES_DIR/tmux/tmux.conf" "$TMUX_CONF_DIR/tmux.conf"
+        success "Linked tmux.conf"
+    fi
+
+    # Symlink custom modules
+    if [ -d "$DOTFILES_DIR/tmux/custom_modules" ]; then
+        mkdir -p "$TMUX_CONF_DIR/custom_modules"
+        for mod in "$DOTFILES_DIR/tmux/custom_modules"/*.conf; do
+            mod_name="$(basename "$mod")"
+            ln -sf "$mod" "$TMUX_CONF_DIR/custom_modules/$mod_name"
+        done
+        success "Linked custom tmux modules"
+    fi
+
+    # Install tmux-copy helper
+    mkdir -p "$HOME/.local/bin"
+    if [ ! -f "$HOME/.local/bin/tmux-copy" ]; then
+        cat > "$HOME/.local/bin/tmux-copy" << 'COPYEOF'
+#!/bin/sh
+# Wrapper for tmux copy-pipe that dynamically finds DISPLAY.
+# When SSHed in without X, this fails gracefully (no-op).
+if [ -z "$DISPLAY" ]; then
+    for sock in /tmp/.X11-unix/X*; do
+        [ -e "$sock" ] && DISPLAY=":${sock##*/tmp/.X11-unix/X}" && export DISPLAY && break
+    done
+fi
+if [ -n "$DISPLAY" ]; then
+    exec xsel --clipboard --input
+fi
+cat > /dev/null
+COPYEOF
+        chmod +x "$HOME/.local/bin/tmux-copy"
+        success "Installed tmux-copy helper"
+    else
+        success "tmux-copy helper already installed"
+    fi
 fi
 
 echo ""
