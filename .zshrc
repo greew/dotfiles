@@ -43,3 +43,8 @@ export NVM_DIR="$HOME/.nvm"
 
 # Source machine-local overrides (aliases, functions, etc.)
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
+# Auto-start tmux if installed and not already in a session
+if command -v tmux &>/dev/null && [ -z "$TMUX" ] && [ -z "$TERMINAL_EMULATOR" ]; then
+  tmux new-session -A -s main
+fi
