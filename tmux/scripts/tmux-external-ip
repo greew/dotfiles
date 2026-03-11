@@ -1,0 +1,46 @@
+#!/bin/bash
+# Fetch external IP with caching (refreshes every 5 minutes)
+# Supports toggle between IPv4 and IPv6 via state file
+
+STATE_FILE="/tmp/.tmux-external-ip-mode"
+CACHE4="/tmp/.tmux-external-ip4"
+CACHE6="/tmp/.tmux-external-ip6"
+MAX_AGE=300
+
+# toggle mode when called with --toggle
+if [[ "$1" == "--toggle" ]]; then
+    current=$(cat "$STATE_FILE" 2>/dev/null || echo "4")
+    if [[ "$current" == "4" ]]; then
+        echo -n "6" > "$STATE_FILE"
+    else
+        echo -n "4" > "$STATE_FILE"
+    fi
+    tmux refresh-client -S
+    exit 0
+fi
+
+mode=$(cat "$STATE_FILE" 2>/dev/null || echo "4")
+
+if [[ "$mode" == "6" ]]; then
+    cache="$CACHE6"
+    url="https://ipv6.icanhazip.com"
+else
+    cache="$CACHE4"
+    url="https://ipv4.icanhazip.com"
+fi
+
+if [[ -f "$cache" ]]; then
+    age=$(( $(date +%s) - $(stat -c %Y "$cache") ))
+    if (( age < MAX_AGE )); then
+        cat "$cache"
+        exit 0
+    fi
+fi
+
+ip=$(curl -s --max-time 3 "$url" 2>/dev/null | tr -d '[:space:]')
+if [[ -n "$ip" ]]; then
+    echo -n "$ip" > "$cache"
+    echo -n "$ip"
+else
+    [[ -f "$cache" ]] && cat "$cache" || echo -n "?"
+fi

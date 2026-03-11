@@ -1,0 +1,8 @@
+#!/bin/bash
+# Return icon based on current IPv4/IPv6 mode
+mode=$(cat /tmp/.tmux-external-ip-mode 2>/dev/null || echo "4")
+if [[ "$mode" == "6" ]]; then
+    echo -n "󰛳"
+else
+    echo -n "󰖟"
+fi

@@ -192,27 +192,14 @@ if [ -d "$DOTFILES_DIR/tmux" ]; then
         success "Linked custom tmux modules"
     fi
 
-    # Install tmux-copy helper
-    mkdir -p "$HOME/.local/bin"
-    if [ ! -f "$HOME/.local/bin/tmux-copy" ]; then
-        cat > "$HOME/.local/bin/tmux-copy" << 'COPYEOF'
-#!/bin/sh
-# Wrapper for tmux copy-pipe that dynamically finds DISPLAY.
-# When SSHed in without X, this fails gracefully (no-op).
-if [ -z "$DISPLAY" ]; then
-    for sock in /tmp/.X11-unix/X*; do
-        [ -e "$sock" ] && DISPLAY=":${sock##*/tmp/.X11-unix/X}" && export DISPLAY && break
-    done
-fi
-if [ -n "$DISPLAY" ]; then
-    exec xsel --clipboard --input
-fi
-cat > /dev/null
-COPYEOF
-        chmod +x "$HOME/.local/bin/tmux-copy"
-        success "Installed tmux-copy helper"
-    else
-        success "tmux-copy helper already installed"
+    # Symlink tmux helper scripts into ~/.local/bin
+    if [ -d "$DOTFILES_DIR/tmux/scripts" ]; then
+        mkdir -p "$HOME/.local/bin"
+        for script in "$DOTFILES_DIR/tmux/scripts"/*; do
+            script_name="$(basename "$script")"
+            ln -sf "$script" "$HOME/.local/bin/$script_name"
+        done
+        success "Linked tmux helper scripts"
     fi
 fi
 
