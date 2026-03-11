@@ -137,23 +137,24 @@ fi
 echo ""
 
 # --------------------------------------------------------------------------
-# Eza zsh completions
+# Eza zsh completions (auto-update when eza version changes)
 # --------------------------------------------------------------------------
 
 EZA_COMP="/usr/local/share/zsh/site-functions/_eza"
 EZA_COMP_URL="https://raw.githubusercontent.com/eza-community/eza/main/completions/zsh/_eza"
+EZA_VERSION_FILE="$DOTFILES_DIR/.eza-comp-version"
 
-if [ -f "$EZA_COMP" ]; then
-    success "Eza zsh completions installed"
-    if ask "Re-download latest eza completions?" "n"; then
-        sudo curl -fsSL -o "$EZA_COMP" "$EZA_COMP_URL"
-        success "Eza completions updated"
-    fi
+eza_current="$(eza --version 2>/dev/null | head -1 || echo "")"
+eza_cached="$(cat "$EZA_VERSION_FILE" 2>/dev/null || echo "")"
+
+if [ -f "$EZA_COMP" ] && [ -n "$eza_current" ] && [ "$eza_current" = "$eza_cached" ]; then
+    success "Eza zsh completions up to date"
 else
-    info "Installing eza zsh completions..."
+    info "Installing/updating eza zsh completions..."
     sudo mkdir -p /usr/local/share/zsh/site-functions
     sudo curl -fsSL -o "$EZA_COMP" "$EZA_COMP_URL"
-    success "Eza completions installed"
+    [ -n "$eza_current" ] && echo "$eza_current" > "$EZA_VERSION_FILE"
+    success "Eza completions updated"
 fi
 
 echo ""
