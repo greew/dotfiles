@@ -33,8 +33,16 @@ alias lls="/bin/ls"
 
 # Git shortcuts
 alias gfc='__gco() { local branch=$(echo "$*" | sed "s/git checkout //"); git fetch; git checkout "$branch"; unset -f __gco; }; __gco'
-alias gsp="git branch --merged origin/master | grep -Ev '^ *\*? *master$'"
-alias gspp="gsp | xargs git branch -d"
+gsp() {
+  git branch --merged origin/develop | grep -Ev "^ *(\*|\+)" | grep -Ev "^ *(master|develop)$" | while read -r branch; do
+  if [[ "$branch" == release/* ]] && git show-ref --quiet "refs/remotes/origin/$branch"; then
+    continue
+  fi
+  echo "$branch"
+done
+}
+alias gspp='gsp | xargs git branch -d'
+
 
 # NVM
 export NVM_DIR="$HOME/.nvm"
