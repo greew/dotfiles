@@ -42,6 +42,7 @@ gsp() {
 done
 }
 alias gspp='gsp | xargs git branch -d'
+alias gspp!='gsp | xargs git branch -D'
 
 
 # NVM
