@@ -53,6 +53,12 @@ export NVM_DIR="$HOME/.nvm"
 # Source machine-local overrides (aliases, functions, etc.)
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
+# Stable forwarded SSH agent socket (survives tmux + SSH reconnects).
+# ~/.ssh/rc repoints ~/.ssh/agent_sock at the live socket on each SSH login;
+# the -h guard means we only override SSH_AUTH_SOCK on machines that use it,
+# leaving a local agent untouched elsewhere.
+[ -h "$HOME/.ssh/agent_sock" ] && export SSH_AUTH_SOCK="$HOME/.ssh/agent_sock"
+
 # Auto-start tmux if installed and not already in a session
 if command -v tmux &>/dev/null && [ -z "$TMUX" ] && [ -z "$TERMINAL_EMULATOR" ]; then
   tmux new-session -A -s main
