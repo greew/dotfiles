@@ -2,3 +2,6 @@
 .eza-comp-version
 
 settings.local.json
+
+# Claude Code: personlige projekt-instruktioner, aldrig committet
+CLAUDE.local.md
